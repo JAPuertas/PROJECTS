@@ -12,6 +12,9 @@
 
 install.packages( "writexl" )
 library( writexl )
+install.packages("ggplot2")
+library( ggplot2 )
+
 
 # 0) Clear work space
 rm(list = ls())
@@ -35,27 +38,37 @@ datasummary_skim( df )
 
 # 3) Make descriptive statistics on the variable visits conditional on the gender
 
-# Get a better idea about price differences among different countries
-
-df$visits <- as.factor( df$visits )
-datasummary( visits * ( gender ) ~ Mean + Median + sd + min + max, data = df )
+datasummary( visits *  gender  ~ Mean + Median + sd + min + max + N , data = df )
 
 
 # 4) Create a ggplot where you display the conditional distributions of visits given the gender
+ggplot( data = df ) +
+  geom_histogram( aes( x = visits ) , fill = 'navyblue', bins = 20 ) +
+  labs(x = "Visits",
+       y = "Count" )
 
-              
-       
 
 
 # 5-6) Would you consider this a useful graph? Use instead a stacked bar graph!
 #   a) create a new tibble, which groups by gender and visits and count the cases (summarise)
+as_tibble(df)
+new_df <- df %>% group_by(gender, visits)
+
+new_df2 <- new_df %>% summarise(Total = n())
+
 #   b) create a ggplot using aux with the geometry: geom_bar. 
 #       You should specify the following arguments: stat = "identity", position = "fill"
 
+ggplot( data = new_df2 ) +
+  geom_bar( aes( x = gender , y = Total) , fill = 'navyblue', stat = "identity" ) +
+  labs(x = "Visits",
+       y = "Count" )
 
 
 # 7) Test whether the number of visits are the same for male and female
 #   Hint: check the t.test function and use `~` sign to define the two groups.
 #   You should have a Welch-Two Sample t-test and its results.
+ttest <- t.test(visits ~ gender, data = new_df2)
+ttest
 
 
